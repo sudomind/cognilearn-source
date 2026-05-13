@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Reset ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; border: 0 solid transparent; }
+
+body {
+  color: #e1e7ef;
+  background: #070a13;
+  font-family: 'IBM Plex Sans', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Sora', sans-serif;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #0b111e; }
+::-webkit-scrollbar-thumb { background: #1b294b; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #5f66e7; }
+
+/* ─── Background Effects ─────────────────────────────── */
+.mesh-orb-1 {
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(#6366f11f 0%, transparent 70%);
+  width: 60vw;
+  height: 60vh;
+  position: fixed;
+  top: -20%;
+  left: -10%;
+}
+
+.mesh-orb-2 {
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(#10b98112 0%, transparent 70%);
+  width: 50vw;
+  height: 50vh;
+  position: fixed;
+  bottom: -20%;
+  right: -10%;
+}
+
+.grid-overlay {
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  position: fixed;
+  inset: 0;
+}
+
+/* ─── Glass Card ─────────────────────────────────────── */
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ─── Animations ─────────────────────────────────────── */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ─── Skeleton Loader ────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #0e1525 25%, #16213c 50%, #0e1525 75%) 0 0 / 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ─── Flip Card ──────────────────────────────────────── */
+.flip-card { perspective: 1200px; cursor: pointer; }
+
+.flip-card-inner {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.flip-card.flipped .flip-card-inner,
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  position: absolute;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.flip-card-back { transform: rotateY(180deg); }
+
+/* ─── Sidebar Active State ───────────────────────────── */
+.sidebar-active {
+  background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(99,102,241,0.06));
+  border-left: 2px solid #5f66e7;
+}
+
+/* ─── Progress Bar ───────────────────────────────────── */
+.progress-bar {
+  background: linear-gradient(90deg, #5f66e7, #a273f2);
+  border-radius: 99px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Typing Dots ────────────────────────────────────── */
+.typing-dot:nth-child(1) { animation: typingDot 1.4s infinite; }
+.typing-dot:nth-child(2) { animation: typingDot 1.4s 0.2s infinite; }
+.typing-dot:nth-child(3) { animation: typingDot 1.4s 0.4s infinite; }
+
+/* ─── Chat Bubbles ───────────────────────────────────── */
+.chat-user {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+}
+
+.chat-ai {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ─── Utilities ──────────────────────────────────────── */
+.border-white\/8 { border-color: rgba(255,255,255,0.08); }
+.bg-white\/3 { background-color: rgba(255,255,255,0.03); }
+.bg-white\/6 { background-color: rgba(255,255,255,0.06); }
+.bg-white\/8 { background-color: rgba(255,255,255,0.08); }
+.hover\:bg-white\/6:hover { background-color: rgba(255,255,255,0.06); }
+
+/* ─── Prose override for chat ─────────────────────────── */
+.prose-invert strong { color: #a5b4fc; }
