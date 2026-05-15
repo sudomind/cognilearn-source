@@ -27,10 +27,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("cognilearn_token");
-      window.location.href = "/";
-    }
+    console.error("API Error:", error);
+
+    // Do NOT auto logout on every 401
+    // Let AppContext handle auth failures safely
+
     return Promise.reject(error);
   }
 );
@@ -44,7 +45,7 @@ export const authApi = {
 
   logout: () => api.post("/auth/logout"),
 
-  me: () => api.get("/auth/me"),
+  me: () => api.get("/auth/profile"),
 };
 
 // ─── Documents endpoints ───────────────────────────────

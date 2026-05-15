@@ -59,31 +59,37 @@ export function AppProvider({ children }) {
 
       const user = profileRes.data.user || profileRes.data;
 
-      // Load documents
-      const docsRes = await documentsApi.list();
+      // Load documents safely
+      let documents = [];
 
-      const documents = docsRes.data.documents || [];
+      try {
+        const docsRes = await documentsApi.list();
 
-      // Load flashcards
+        documents = docsRes.data.documents || [];
+      } catch (err) {
+        console.error("Documents load failed:", err);
+      }
+
+      // Load flashcards safely
       let flashcards = [];
 
       try {
         const flashRes = await flashcardsApi.list();
 
         flashcards = flashRes.data.flashcards || [];
-      } catch {
-        flashcards = [];
+      } catch (err) {
+        console.error("Flashcards load failed:", err);
       }
 
-      // Load quizzes
+      // Load quizzes safely
       let quizzes = [];
 
       try {
         const quizRes = await quizzesApi.list();
 
         quizzes = quizRes.data.quizzes || [];
-      } catch {
-        quizzes = [];
+      } catch (err) {
+        console.error("Quizzes load failed:", err);
       }
 
       setState((s) => ({
