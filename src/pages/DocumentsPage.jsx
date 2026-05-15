@@ -122,7 +122,7 @@ export default function DocumentsPage() {
               <div className="flex items-center gap-3 text-xs text-slate-500">
                 <span>{doc.pages} pages</span>
                 <span>·</span>
-                <span>{formatBytes(doc.size)}</span>
+                <span>{formatBytes(doc.size || doc.fileSize || 0)}</span>
                 <span>·</span>
                 <span>{timeAgo(doc.uploadedAt)}</span>
               </div>
