@@ -66,18 +66,31 @@ export const documentsApi = {
 
 // ─── AI Feature endpoints ──────────────────────────────
 export const aiApi = {
-  generateSummary: (docId) => api.post(`/ai/summary`, { docId }),
+  generateSummary: (docId) => api.post(`/ai/${docId}/summary`),
 
   explainConcept: (docId, concept) =>
-    api.post("/ai/explain", { docId, concept }),
+    api.post(`/ai/${docId}/explain`, {
+      concept,
+    }),
 
   generateFlashcards: (docId, count = 8) =>
-    api.post("/ai/flashcards", { docId, count }),
+    api.post(`/ai/${docId}/flashcards`, {
+      count,
+    }),
 
-  generateQuiz: (docId, count = 5) => api.post("/ai/quiz", { docId, count }),
+  generateQuiz: (docId, count = 5) =>
+    api.post(`/ai/${docId}/quiz`, {
+      count,
+    }),
 
-  chat: (docId, message, history = []) =>
-    api.post("/ai/chat", { docId, message, history }),
+  chat: (docId, message) =>
+    api.post(`/ai/${docId}/chat`, {
+      message,
+    }),
+
+  getChatHistory: (docId) => api.get(`/ai/${docId}/chat/history`),
+
+  clearChatHistory: (docId) => api.delete(`/ai/${docId}/chat/history`),
 };
 
 // ─── Flashcards endpoints ──────────────────────────────
