@@ -1,191 +1,362 @@
-import { createContext, useContext, useState, useCallback } from 'react'
-import { genId, delay } from '../utils/helpers'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 
-// ─── Seed demo documents ──────────────────────────────
-const DEMO_DOCS = [
-  {
-    id: 'doc-1',
-    name: 'Introduction to Machine Learning.pdf',
-    size: 2.4 * 1024 * 1024,
-    pages: 48,
-    uploadedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    color: 'indigo',
-    summary: '',
-    content:
-      'Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed. It focuses on developing computer programs that can access data and use it to learn for themselves. Machine learning algorithms include linear regression, decision trees, support vector machines, neural networks, and deep learning models. Supervised learning uses labeled training data, unsupervised learning finds patterns in unlabeled data, and reinforcement learning trains agents through rewards and penalties. Neural networks are inspired by biological neural networks and consist of layers of interconnected nodes. Deep learning uses multiple layers to progressively extract higher-level features. Applications include image recognition, natural language processing, speech recognition, autonomous vehicles, medical diagnosis, and recommendation systems.',
-  },
-  {
-    id: 'doc-2',
-    name: 'Data Structures and Algorithms.pdf',
-    size: 1.8 * 1024 * 1024,
-    pages: 62,
-    uploadedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    color: 'emerald',
-    summary: '',
-    content:
-      'Data structures are specialized formats for organizing, processing, retrieving and storing data. Common structures include arrays, linked lists, stacks, queues, trees, graphs, and hash tables. Arrays store elements in contiguous memory. Linked lists use nodes with pointers. Stacks follow LIFO and queues follow FIFO. Binary trees have at most two children per node. Binary search trees maintain ordering. AVL trees and Red-Black trees are self-balancing. Graphs consist of vertices and edges. Hash tables provide O(1) average case lookup. Algorithms define step-by-step procedures for solving problems. Big O notation describes time and space complexity. Common sorting algorithms include bubble sort O(n²), merge sort O(n log n), quicksort O(n log n) average. Binary search runs in O(log n). Dynamic programming breaks problems into overlapping subproblems.',
-  },
-]
+import {
+  authApi,
+  documentsApi,
+  flashcardsApi,
+  quizzesApi,
+} from "../services/api";
 
-const COLORS = ['indigo', 'emerald', 'violet', 'amber', 'rose']
-const FALLBACK_CONTENT =
-  'This document contains educational content about the subject matter. It covers key concepts, definitions, theories, and practical applications. The material includes discussions of fundamental principles, advanced topics, case studies, and examples.'
-
-// ─── Context ──────────────────────────────────────────
-const AppContext = createContext(null)
+const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, setState] = useState({
     user: null,
     isAuthenticated: false,
-    currentView: 'login',
+
+    currentView: "login",
     selectedDocId: null,
-    documents: DEMO_DOCS,
+
+    documents: [],
     flashcards: [],
     quizzes: [],
     chatHistories: {},
-  })
 
-  // ── Auth ────────────────────────────────────────────
-  const login = useCallback(async (email, password) => {
-    await delay(900)
-    const user = {
-      id: 'user-1',
-      name: email.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-      email,
-      joinedAt: new Date().toISOString(),
+    loading: true,
+  });
+
+  // ─────────────────────────────────────────────
+  // INITIAL APP LOAD
+  // ─────────────────────────────────────────────
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  // ─────────────────────────────────────────────
+  // INITIALIZE APP
+  // ─────────────────────────────────────────────
+  const initializeApp = async () => {
+    try {
+      const token = localStorage.getItem("cognilearn_token");
+
+      if (!token) {
+        setState((s) => ({
+          ...s,
+          loading: false,
+        }));
+
+        return;
+      }
+
+      // Load profile
+      const profileRes = await authApi.me();
+
+      const user = profileRes.data.user || profileRes.data;
+
+      // Load documents
+      const docsRes = await documentsApi.list();
+
+      const documents = docsRes.data.documents || [];
+
+      // Load flashcards
+      let flashcards = [];
+
+      try {
+        const flashRes = await flashcardsApi.list();
+
+        flashcards = flashRes.data.flashcards || [];
+      } catch {
+        flashcards = [];
+      }
+
+      // Load quizzes
+      let quizzes = [];
+
+      try {
+        const quizRes = await quizzesApi.list();
+
+        quizzes = quizRes.data.quizzes || [];
+      } catch {
+        quizzes = [];
+      }
+
+      setState((s) => ({
+        ...s,
+
+        user,
+        isAuthenticated: true,
+
+        documents,
+        flashcards,
+        quizzes,
+
+        currentView: "dashboard",
+        loading: false,
+      }));
+    } catch (err) {
+      console.error("App initialization failed:", err);
+
+      localStorage.removeItem("cognilearn_token");
+
+      setState((s) => ({
+        ...s,
+
+        user: null,
+        isAuthenticated: false,
+
+        documents: [],
+        flashcards: [],
+        quizzes: [],
+
+        loading: false,
+      }));
     }
-    setState((s) => ({ ...s, user, isAuthenticated: true, currentView: 'dashboard' }))
-    return true
-  }, [])
+  };
 
+  // ─────────────────────────────────────────────
+  // LOGIN
+  // ─────────────────────────────────────────────
+  const login = useCallback(async (email, password) => {
+    try {
+      const res = await authApi.login(email, password);
+
+      const token = res.data.token;
+
+      const user = res.data.user;
+
+      localStorage.setItem("cognilearn_token", token);
+
+      // Load documents immediately
+      let documents = [];
+
+      try {
+        const docsRes = await documentsApi.list();
+
+        documents = docsRes.data.documents || [];
+      } catch {
+        documents = [];
+      }
+
+      setState((s) => ({
+        ...s,
+
+        user,
+        documents,
+
+        isAuthenticated: true,
+        currentView: "dashboard",
+      }));
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      return {
+        success: false,
+
+        message: error.response?.data?.message || "Invalid email or password",
+      };
+    }
+  }, []);
+
+  // ─────────────────────────────────────────────
+  // REGISTER
+  // ─────────────────────────────────────────────
   const register = useCallback(async (name, email, password) => {
-    await delay(900)
-    const user = { id: 'user-1', name, email, joinedAt: new Date().toISOString() }
-    setState((s) => ({ ...s, user, isAuthenticated: true, currentView: 'dashboard' }))
-    return true
-  }, [])
+    try {
+      const res = await authApi.register(name, email, password);
 
+      const token = res.data.token;
+
+      const user = res.data.user;
+
+      localStorage.setItem("cognilearn_token", token);
+
+      setState((s) => ({
+        ...s,
+
+        user,
+        documents: [],
+
+        isAuthenticated: true,
+        currentView: "dashboard",
+      }));
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error("Register failed:", error);
+
+      return {
+        success: false,
+
+        message: error.response?.data?.message || "Registration failed",
+      };
+    }
+  }, []);
+
+  // ─────────────────────────────────────────────
+  // LOGOUT
+  // ─────────────────────────────────────────────
   const logout = useCallback(() => {
-    setState((s) => ({ ...s, user: null, isAuthenticated: false, currentView: 'login' }))
-  }, [])
+    localStorage.removeItem("cognilearn_token");
 
-  // ── Navigation ──────────────────────────────────────
+    setState({
+      user: null,
+      isAuthenticated: false,
+
+      currentView: "login",
+      selectedDocId: null,
+
+      documents: [],
+      flashcards: [],
+      quizzes: [],
+      chatHistories: {},
+
+      loading: false,
+    });
+  }, []);
+
+  // ─────────────────────────────────────────────
+  // NAVIGATION
+  // ─────────────────────────────────────────────
   const setCurrentView = useCallback((view) => {
-    setState((s) => ({ ...s, currentView: view }))
-  }, [])
+    setState((s) => ({
+      ...s,
+      currentView: view,
+    }));
+  }, []);
 
   const setSelectedDocId = useCallback((id) => {
-    setState((s) => ({ ...s, selectedDocId: id }))
-  }, [])
+    setState((s) => ({
+      ...s,
+      selectedDocId: id,
+    }));
+  }, []);
 
-  // ── Documents ────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // DOCUMENTS
+  // ─────────────────────────────────────────────
   const addDocument = useCallback((doc) => {
-    const full = {
-      ...doc,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      content: (doc.content || FALLBACK_CONTENT) + ` This is "${doc.name}" — upload processed successfully.`,
-      summary: '',
+    setState((s) => ({
+      ...s,
+      documents: [doc, ...s.documents],
+    }));
+  }, []);
+
+  const refreshDocuments = useCallback(async () => {
+    try {
+      const res = await documentsApi.list();
+
+      setState((s) => ({
+        ...s,
+        documents: res.data.documents || [],
+      }));
+    } catch (err) {
+      console.error("Refresh documents failed:", err);
     }
-    setState((s) => ({ ...s, documents: [full, ...s.documents] }))
-  }, [])
+  }, []);
 
-  const updateDocument = useCallback((id, patch) => {
-    setState((s) => ({
-      ...s,
-      documents: s.documents.map((d) => (d.id === id ? { ...d, ...patch } : d)),
-    }))
-  }, [])
+  const deleteDocument = useCallback(async (id) => {
+    try {
+      await documentsApi.delete(id);
 
-  const deleteDocument = useCallback((id) => {
-    setState((s) => ({
-      ...s,
-      documents: s.documents.filter((d) => d.id !== id),
-      flashcards: s.flashcards.filter((f) => f.docId !== id),
-      quizzes: s.quizzes.filter((q) => q.docId !== id),
-    }))
-  }, [])
+      setState((s) => ({
+        ...s,
 
-  // ── Flashcards ───────────────────────────────────────
+        documents: s.documents.filter((d) => d.id !== id && d._id !== id),
+      }));
+    } catch (err) {
+      console.error("Delete document failed:", err);
+    }
+  }, []);
+
+  // ─────────────────────────────────────────────
+  // FLASHCARDS
+  // ─────────────────────────────────────────────
   const addFlashcards = useCallback((cards) => {
     setState((s) => ({
       ...s,
-      flashcards: [...s.flashcards.filter((f) => f.docId !== cards[0]?.docId), ...cards],
-    }))
-  }, [])
 
-  const toggleFavoriteFlashcard = useCallback((id) => {
-    setState((s) => ({
-      ...s,
-      flashcards: s.flashcards.map((f) => (f.id === id ? { ...f, favorited: !f.favorited } : f)),
-    }))
-  }, [])
+      flashcards: [...s.flashcards, ...cards],
+    }));
+  }, []);
 
-  const deleteFlashcard = useCallback((id) => {
-    setState((s) => ({ ...s, flashcards: s.flashcards.filter((f) => f.id !== id) }))
-  }, [])
-
-  // ── Quizzes ──────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // QUIZZES
+  // ─────────────────────────────────────────────
   const addQuiz = useCallback((quiz) => {
-    setState((s) => ({ ...s, quizzes: [quiz, ...s.quizzes] }))
-  }, [])
-
-  const updateQuizScore = useCallback((id, score) => {
     setState((s) => ({
       ...s,
-      quizzes: s.quizzes.map((q) =>
-        q.id === id ? { ...q, score, total: q.questions.length, completedAt: new Date().toISOString() } : q
-      ),
-    }))
-  }, [])
+      quizzes: [quiz, ...s.quizzes],
+    }));
+  }, []);
 
-  const deleteQuiz = useCallback((id) => {
-    setState((s) => ({ ...s, quizzes: s.quizzes.filter((q) => q.id !== id) }))
-  }, [])
-
-  // ── Chat ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // CHAT
+  // ─────────────────────────────────────────────
   const addChatMessage = useCallback((docId, message) => {
     setState((s) => ({
       ...s,
+
       chatHistories: {
         ...s.chatHistories,
+
         [docId]: [...(s.chatHistories[docId] || []), message],
       },
-    }))
-  }, [])
+    }));
+  }, []);
 
   const clearChat = useCallback((docId) => {
     setState((s) => ({
       ...s,
-      chatHistories: { ...s.chatHistories, [docId]: [] },
-    }))
-  }, [])
+
+      chatHistories: {
+        ...s.chatHistories,
+        [docId]: [],
+      },
+    }));
+  }, []);
 
   const value = {
     ...state,
+
     login,
     register,
     logout,
+
     setCurrentView,
     setSelectedDocId,
+
     addDocument,
-    updateDocument,
+    refreshDocuments,
     deleteDocument,
+
     addFlashcards,
-    toggleFavoriteFlashcard,
-    deleteFlashcard,
     addQuiz,
-    updateQuizScore,
-    deleteQuiz,
+
     addChatMessage,
     clearChat,
-  }
+  };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
-  const ctx = useContext(AppContext)
-  if (!ctx) throw new Error('useApp must be used within AppProvider')
-  return ctx
+  const ctx = useContext(AppContext);
+
+  if (!ctx) {
+    throw new Error("useApp must be used within AppProvider");
+  }
+
+  return ctx;
 }

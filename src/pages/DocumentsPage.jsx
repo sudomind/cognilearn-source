@@ -1,34 +1,35 @@
-import { useState } from 'react'
-import { useApp } from '../context/AppContext'
-import { Button } from '../components/ui/Button'
-import UploadModal from '../components/UploadModal'
-import { formatBytes, timeAgo } from '../utils/helpers'
+import { useState } from "react";
+import { useApp } from "../context/AppContext";
+import { Button } from "../components/ui/Button";
+import UploadModal from "../components/UploadModal";
+import { formatBytes, timeAgo } from "../utils/helpers";
 
 const CARD_BG = {
-  indigo: 'bg-indigo-500/15 border-indigo-500/30',
-  emerald: 'bg-emerald-500/15 border-emerald-500/30',
-  violet: 'bg-violet-500/15 border-violet-500/30',
-  amber: 'bg-amber-500/15 border-amber-500/30',
-  rose: 'bg-rose-500/15 border-rose-500/30',
-}
+  indigo: "bg-indigo-500/15 border-indigo-500/30",
+  emerald: "bg-emerald-500/15 border-emerald-500/30",
+  violet: "bg-violet-500/15 border-violet-500/30",
+  amber: "bg-amber-500/15 border-amber-500/30",
+  rose: "bg-rose-500/15 border-rose-500/30",
+};
 
 const ICON_BG = {
-  indigo: 'bg-indigo-500/20 text-indigo-400',
-  emerald: 'bg-emerald-500/20 text-emerald-400',
-  violet: 'bg-violet-500/20 text-violet-400',
-  amber: 'bg-amber-500/20 text-amber-400',
-  rose: 'bg-rose-500/20 text-rose-400',
-}
+  indigo: "bg-indigo-500/20 text-indigo-400",
+  emerald: "bg-emerald-500/20 text-emerald-400",
+  violet: "bg-violet-500/20 text-violet-400",
+  amber: "bg-amber-500/20 text-amber-400",
+  rose: "bg-rose-500/20 text-rose-400",
+};
 
 export default function DocumentsPage() {
-  const { documents, deleteDocument, setCurrentView, setSelectedDocId } = useApp()
-  const [showUpload, setShowUpload] = useState(false)
-  const [search, setSearch] = useState('')
-  const [confirmDelete, setConfirmDelete] = useState(null)
+  const { documents, deleteDocument, setCurrentView, setSelectedDocId } =
+    useApp();
+  const [showUpload, setShowUpload] = useState(false);
+  const [search, setSearch] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const filtered = documents.filter((d) =>
     d.name.toLowerCase().includes(search.toLowerCase())
-  )
+  );
 
   return (
     <div className="p-8 space-y-6 max-w-6xl mx-auto animate-fade-in">
@@ -39,17 +40,23 @@ export default function DocumentsPage() {
         <div>
           <h1 className="text-2xl font-bold font-sora">My Documents</h1>
           <p className="text-slate-400 text-sm mt-1">
-            {documents.length} document{documents.length !== 1 ? 's' : ''} in your library
+            {documents.length} document{documents.length !== 1 ? "s" : ""} in
+            your library
           </p>
         </div>
-        <Button onClick={() => setShowUpload(true)} className="bg-indigo-500 hover:bg-indigo-600 text-white gap-2">
+        <Button
+          onClick={() => setShowUpload(true)}
+          className="bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
+        >
           <span>⬆</span> Upload PDF
         </Button>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+          🔍
+        </span>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -63,13 +70,18 @@ export default function DocumentsPage() {
         <div className="glass-card rounded-2xl p-16 text-center space-y-4">
           <div className="text-6xl">📂</div>
           <h3 className="text-xl font-semibold font-sora">
-            {search ? 'No results found' : 'No documents yet'}
+            {search ? "No results found" : "No documents yet"}
           </h3>
           <p className="text-slate-400 text-sm">
-            {search ? 'Try a different search term' : 'Upload your first PDF to start learning'}
+            {search
+              ? "Try a different search term"
+              : "Upload your first PDF to start learning"}
           </p>
           {!search && (
-            <Button onClick={() => setShowUpload(true)} className="bg-indigo-500 hover:bg-indigo-600 text-white mt-4">
+            <Button
+              onClick={() => setShowUpload(true)}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white mt-4"
+            >
               Upload PDF
             </Button>
           )}
@@ -83,7 +95,10 @@ export default function DocumentsPage() {
                 CARD_BG[doc.color] || CARD_BG.indigo
               }`}
               style={{ animationDelay: `${i * 0.06}s` }}
-              onClick={() => { setSelectedDocId(doc.id); setCurrentView('document-detail') }}
+              onClick={() => {
+                setSelectedDocId(doc.id);
+                setCurrentView("document-detail");
+              }}
             >
               {/* Delete confirm */}
               {confirmDelete === doc.id ? (
@@ -92,7 +107,10 @@ export default function DocumentsPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
-                    onClick={() => { deleteDocument(doc.id); setConfirmDelete(null) }}
+                    onClick={() => {
+                      deleteDocument(doc.id);
+                      setConfirmDelete(null);
+                    }}
                     className="text-xs bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 rounded-lg px-2 py-1 transition-colors"
                   >
                     Delete
@@ -106,23 +124,32 @@ export default function DocumentsPage() {
                 </div>
               ) : (
                 <button
-                  onClick={(e) => { e.stopPropagation(); setConfirmDelete(doc.id) }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDelete(doc.id);
+                  }}
                   className="absolute top-3 right-3 text-slate-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all text-sm p-1"
                 >
                   🗑
                 </button>
               )}
 
-              <div className={`w-12 h-12 rounded-xl ${ICON_BG[doc.color] || ICON_BG.indigo} flex items-center justify-center text-2xl mb-4`}>
+              <div
+                className={`w-12 h-12 rounded-xl ${
+                  ICON_BG[doc.color] || ICON_BG.indigo
+                } flex items-center justify-center text-2xl mb-4`}
+              >
                 📄
               </div>
 
-              <h3 className="font-semibold text-sm leading-snug mb-2 line-clamp-2">{doc.name}</h3>
+              <h3 className="font-semibold text-sm leading-snug mb-2 line-clamp-2">
+                {doc.name}
+              </h3>
 
               <div className="flex items-center gap-3 text-xs text-slate-500">
                 <span>{doc.pages} pages</span>
                 <span>·</span>
-                <span>{formatBytes(doc.size)}</span>
+                <span>{formatBytes(doc.size || doc.fileSize || 0)}</span>
                 <span>·</span>
                 <span>{timeAgo(doc.uploadedAt)}</span>
               </div>
@@ -134,8 +161,11 @@ export default function DocumentsPage() {
               )}
 
               <div className="mt-4 flex gap-2">
-                {['Chat', 'Quiz', 'Cards'].map((tag) => (
-                  <div key={tag} className="text-xs bg-white/5 rounded-lg px-2.5 py-1 text-slate-400">
+                {["Chat", "Quiz", "Cards"].map((tag) => (
+                  <div
+                    key={tag}
+                    className="text-xs bg-white/5 rounded-lg px-2.5 py-1 text-slate-400"
+                  >
                     {tag}
                   </div>
                 ))}
@@ -145,5 +175,5 @@ export default function DocumentsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

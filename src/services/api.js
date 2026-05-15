@@ -1,120 +1,105 @@
-import axios from 'axios'
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://cognilearn-backend.onrender.com'
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://cognilearn-backend.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
 // ─── Request interceptor: attach auth token ───────────
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('cognilearn_token')
+    const token = localStorage.getItem("cognilearn_token");
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
   (error) => Promise.reject(error)
-)
+);
 
 // ─── Response interceptor: handle errors globally ─────
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('cognilearn_token')
-      window.location.href = '/'
+      localStorage.removeItem("cognilearn_token");
+      window.location.href = "/";
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 // ─── Auth endpoints ────────────────────────────────────
 export const authApi = {
-  login: (email, password) =>
-    api.post('/auth/login', { email, password }),
+  login: (email, password) => api.post("/auth/login", { email, password }),
 
   register: (name, email, password) =>
-    api.post('/auth/register', { name, email, password }),
+    api.post("/auth/register", { name, email, password }),
 
-  logout: () =>
-    api.post('/auth/logout'),
+  logout: () => api.post("/auth/logout"),
 
-  me: () =>
-    api.get('/auth/me'),
-}
+  me: () => api.get("/auth/me"),
+};
 
 // ─── Documents endpoints ───────────────────────────────
 export const documentsApi = {
-  list: () =>
-    api.get('/documents'),
+  list: () => api.get("/documents"),
 
   upload: (formData) =>
-    api.post('/documents/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    api.post("/documents/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
     }),
 
-  get: (docId) =>
-    api.get(`/documents/${docId}`),
+  get: (docId) => api.get(`/documents/${docId}`),
 
-  delete: (docId) =>
-    api.delete(`/documents/${docId}`),
+  delete: (docId) => api.delete(`/documents/${docId}`),
 
-  getSummary: (docId) =>
-    api.get(`/documents/${docId}/summary`),
-}
+  getSummary: (docId) => api.get(`/documents/${docId}/summary`),
+};
 
 // ─── AI Feature endpoints ──────────────────────────────
 export const aiApi = {
-  generateSummary: (docId) =>
-    api.post(`/ai/summary`, { docId }),
+  generateSummary: (docId) => api.post(`/ai/summary`, { docId }),
 
   explainConcept: (docId, concept) =>
-    api.post('/ai/explain', { docId, concept }),
+    api.post("/ai/explain", { docId, concept }),
 
   generateFlashcards: (docId, count = 8) =>
-    api.post('/ai/flashcards', { docId, count }),
+    api.post("/ai/flashcards", { docId, count }),
 
-  generateQuiz: (docId, count = 5) =>
-    api.post('/ai/quiz', { docId, count }),
+  generateQuiz: (docId, count = 5) => api.post("/ai/quiz", { docId, count }),
 
   chat: (docId, message, history = []) =>
-    api.post('/ai/chat', { docId, message, history }),
-}
+    api.post("/ai/chat", { docId, message, history }),
+};
 
 // ─── Flashcards endpoints ──────────────────────────────
 export const flashcardsApi = {
-  list: () =>
-    api.get('/flashcards'),
+  list: () => api.get("/flashcards"),
 
-  getByDoc: (docId) =>
-    api.get(`/flashcards?docId=${docId}`),
+  getByDoc: (docId) => api.get(`/flashcards?docId=${docId}`),
 
-  toggleFavorite: (cardId) =>
-    api.patch(`/flashcards/${cardId}/favorite`),
+  toggleFavorite: (cardId) => api.patch(`/flashcards/${cardId}/favorite`),
 
-  delete: (cardId) =>
-    api.delete(`/flashcards/${cardId}`),
-}
+  delete: (cardId) => api.delete(`/flashcards/${cardId}`),
+};
 
 // ─── Quizzes endpoints ─────────────────────────────────
 export const quizzesApi = {
-  list: () =>
-    api.get('/quizzes'),
+  list: () => api.get("/quizzes"),
 
-  get: (quizId) =>
-    api.get(`/quizzes/${quizId}`),
+  get: (quizId) => api.get(`/quizzes/${quizId}`),
 
   submitScore: (quizId, score, total) =>
     api.patch(`/quizzes/${quizId}/score`, { score, total }),
 
-  delete: (quizId) =>
-    api.delete(`/quizzes/${quizId}`),
-}
+  delete: (quizId) => api.delete(`/quizzes/${quizId}`),
+};
 
-export default api
+export default api;
