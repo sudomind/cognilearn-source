@@ -173,17 +173,70 @@ export function AppProvider({ children }) {
 
         localStorage.setItem('cognilearn_token', token);
 
-        await refreshQuizzes();
+              // LOAD DOCUMENTS
+      let documents = [];
 
-        setState((s) => ({
-          ...s,
+      try {
+        const docsRes =
+          await documentsApi.list();
 
-          user,
+        documents =
+          docsRes.data.documents || [];
+      } catch (err) {
+        console.error(
+          "Documents load failed:",
+          err
+        );
+      }
 
-          isAuthenticated: true,
+      // LOAD FLASHCARDS
+      let flashcards = [];
 
-          currentView: 'dashboard',
-        }));
+      try {
+        const flashRes =
+          await flashcardsApi.list();
+
+        flashcards =
+          flashRes.data.flashcards ||
+          [];
+      } catch (err) {
+        console.error(
+          "Flashcards load failed:",
+          err
+        );
+      }
+
+      // LOAD QUIZZES
+      let quizzes = [];
+
+      try {
+        const quizRes =
+          await quizzesApi.list();
+
+        quizzes =
+          quizRes.data.quizzes || [];
+      } catch (err) {
+        console.error(
+          "Quizzes load failed:",
+          err
+        );
+      }
+
+      setState((s) => ({
+        ...s,
+
+        user,
+
+        documents,
+
+        flashcards,
+
+        quizzes,
+
+        isAuthenticated: true,
+
+        currentView: "dashboard",
+      }));
 
         return {
           success: true,
