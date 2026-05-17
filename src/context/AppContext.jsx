@@ -387,6 +387,28 @@ export function AppProvider({ children }) {
   );
 
   // ======================================
+  // DELETE QUIZ
+  // ======================================
+
+  const deleteQuiz = useCallback(
+    async (id) => {
+      try {
+        await quizzesApi.delete(id);
+
+        setState((s) => ({
+          ...s,
+
+          quizzes: s.quizzes.filter((q) => q.id !== id && q._id !== id),
+        }));
+      } catch (err) {
+        console.error("Delete quiz failed:", err);
+      }
+    },
+
+    []
+  );
+
+  // ======================================
   // CHAT
   // ======================================
 
@@ -444,6 +466,8 @@ export function AppProvider({ children }) {
     addFlashcards,
 
     addQuiz,
+
+    deleteQuiz,
 
     refreshQuizzes,
 
