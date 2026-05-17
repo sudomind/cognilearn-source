@@ -18,29 +18,54 @@ const AppContext = createContext(null);
 export function AppProvider({ children }) {
   const [state, setState] = useState({
     user: null,
+
     isAuthenticated: false,
 
     currentView: "login",
+
     selectedDocId: null,
 
     documents: [],
+
     flashcards: [],
+
     quizzes: [],
+
     chatHistories: {},
 
     loading: true,
   });
 
-  // ─────────────────────────────────────────────
+  // ======================================
   // INITIAL APP LOAD
-  // ─────────────────────────────────────────────
+  // ======================================
+
   useEffect(() => {
     initializeApp();
   }, []);
 
-  // ─────────────────────────────────────────────
+  // ======================================
+  // LOAD QUIZZES
+  // ======================================
+
+  const refreshQuizzes = useCallback(async () => {
+    try {
+      const res = await quizzesApi.list();
+
+      setState((s) => ({
+        ...s,
+
+        quizzes: res.data.quizzes || [],
+      }));
+    } catch (err) {
+      console.error("Refresh quizzes failed:", err);
+    }
+  }, []);
+
+  // ======================================
   // INITIALIZE APP
-  // ─────────────────────────────────────────────
+  // ======================================
+
   const initializeApp = async () => {
     try {
       const token = localStorage.getItem("cognilearn_token");
@@ -48,18 +73,19 @@ export function AppProvider({ children }) {
       if (!token) {
         setState((s) => ({
           ...s,
+
           loading: false,
         }));
 
         return;
       }
 
-      // Load profile
+      // PROFILE
       const profileRes = await authApi.me();
 
       const user = profileRes.data.user || profileRes.data;
 
-      // Load documents safely
+      // DOCUMENTS
       let documents = [];
 
       try {
@@ -70,7 +96,7 @@ export function AppProvider({ children }) {
         console.error("Documents load failed:", err);
       }
 
-      // Load flashcards safely
+      // FLASHCARDS
       let flashcards = [];
 
       try {
@@ -81,7 +107,7 @@ export function AppProvider({ children }) {
         console.error("Flashcards load failed:", err);
       }
 
-      // Load quizzes safely
+      // QUIZZES
       let quizzes = [];
 
       try {
@@ -96,13 +122,17 @@ export function AppProvider({ children }) {
         ...s,
 
         user,
+
         isAuthenticated: true,
 
         documents,
+
         flashcards,
+
         quizzes,
 
         currentView: "dashboard",
+
         loading: false,
       }));
     } catch (err) {
@@ -114,10 +144,13 @@ export function AppProvider({ children }) {
         ...s,
 
         user: null,
+
         isAuthenticated: false,
 
         documents: [],
+
         flashcards: [],
+
         quizzes: [],
 
         loading: false,
@@ -125,139 +158,169 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ─────────────────────────────────────────────
+  // ======================================
   // LOGIN
-  // ─────────────────────────────────────────────
-  const login = useCallback(async (email, password) => {
-    try {
-      const res = await authApi.login(email, password);
+  // ======================================
 
-      const token = res.data.token;
-
-      const user = res.data.user;
-
-      localStorage.setItem("cognilearn_token", token);
-
-      // Load documents immediately
-      let documents = [];
-
+  const login = useCallback(
+    async (email, password) => {
       try {
-        const docsRes = await documentsApi.list();
+        const res = await authApi.login(email, password);
 
-        documents = docsRes.data.documents || [];
-      } catch {
-        documents = [];
+        const token = res.data.token;
+
+        const user = res.data.user;
+
+        localStorage.setItem("cognilearn_token", token);
+
+        await refreshQuizzes();
+
+        setState((s) => ({
+          ...s,
+
+          user,
+
+          isAuthenticated: true,
+
+          currentView: "dashboard",
+        }));
+
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error("Login failed:", error);
+
+        return {
+          success: false,
+
+          message: error.response?.data?.message || "Invalid email or password",
+        };
       }
+    },
 
-      setState((s) => ({
-        ...s,
+    [refreshQuizzes]
+  );
 
-        user,
-        documents,
-
-        isAuthenticated: true,
-        currentView: "dashboard",
-      }));
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      console.error("Login failed:", error);
-
-      return {
-        success: false,
-
-        message: error.response?.data?.message || "Invalid email or password",
-      };
-    }
-  }, []);
-
-  // ─────────────────────────────────────────────
+  // ======================================
   // REGISTER
-  // ─────────────────────────────────────────────
-  const register = useCallback(async (name, email, password) => {
-    try {
-      const res = await authApi.register(name, email, password);
+  // ======================================
 
-      const token = res.data.token;
+  const register = useCallback(
+    async (name, email, password) => {
+      try {
+        const res = await authApi.register(name, email, password);
 
-      const user = res.data.user;
+        const token = res.data.token;
 
-      localStorage.setItem("cognilearn_token", token);
+        const user = res.data.user;
 
-      setState((s) => ({
-        ...s,
+        localStorage.setItem("cognilearn_token", token);
 
-        user,
-        documents: [],
+        setState((s) => ({
+          ...s,
 
-        isAuthenticated: true,
-        currentView: "dashboard",
-      }));
+          user,
 
-      return {
-        success: true,
-      };
-    } catch (error) {
-      console.error("Register failed:", error);
+          documents: [],
 
-      return {
-        success: false,
+          flashcards: [],
 
-        message: error.response?.data?.message || "Registration failed",
-      };
-    }
-  }, []);
+          quizzes: [],
 
-  // ─────────────────────────────────────────────
+          isAuthenticated: true,
+
+          currentView: "dashboard",
+        }));
+
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error("Register failed:", error);
+
+        return {
+          success: false,
+
+          message: error.response?.data?.message || "Registration failed",
+        };
+      }
+    },
+
+    []
+  );
+
+  // ======================================
   // LOGOUT
-  // ─────────────────────────────────────────────
+  // ======================================
+
   const logout = useCallback(() => {
     localStorage.removeItem("cognilearn_token");
 
     setState({
       user: null,
+
       isAuthenticated: false,
 
       currentView: "login",
+
       selectedDocId: null,
 
       documents: [],
+
       flashcards: [],
+
       quizzes: [],
+
       chatHistories: {},
 
       loading: false,
     });
   }, []);
 
-  // ─────────────────────────────────────────────
+  // ======================================
   // NAVIGATION
-  // ─────────────────────────────────────────────
-  const setCurrentView = useCallback((view) => {
-    setState((s) => ({
-      ...s,
-      currentView: view,
-    }));
-  }, []);
+  // ======================================
 
-  const setSelectedDocId = useCallback((id) => {
-    setState((s) => ({
-      ...s,
-      selectedDocId: id,
-    }));
-  }, []);
+  const setCurrentView = useCallback(
+    (view) => {
+      setState((s) => ({
+        ...s,
 
-  // ─────────────────────────────────────────────
+        currentView: view,
+      }));
+    },
+
+    []
+  );
+
+  const setSelectedDocId = useCallback(
+    (id) => {
+      setState((s) => ({
+        ...s,
+
+        selectedDocId: id,
+      }));
+    },
+
+    []
+  );
+
+  // ======================================
   // DOCUMENTS
-  // ─────────────────────────────────────────────
-  const addDocument = useCallback((doc) => {
-    setState((s) => ({
-      ...s,
-      documents: [doc, ...s.documents],
-    }));
-  }, []);
+  // ======================================
+
+  const addDocument = useCallback(
+    (doc) => {
+      setState((s) => ({
+        ...s,
+
+        documents: [doc, ...s.documents],
+      }));
+    },
+
+    []
+  );
 
   const refreshDocuments = useCallback(async () => {
     try {
@@ -265,6 +328,7 @@ export function AppProvider({ children }) {
 
       setState((s) => ({
         ...s,
+
         documents: res.data.documents || [],
       }));
     } catch (err) {
@@ -272,85 +336,119 @@ export function AppProvider({ children }) {
     }
   }, []);
 
-  const deleteDocument = useCallback(async (id) => {
-    try {
-      await documentsApi.delete(id);
+  const deleteDocument = useCallback(
+    async (id) => {
+      try {
+        await documentsApi.delete(id);
 
+        setState((s) => ({
+          ...s,
+
+          documents: s.documents.filter((d) => d.id !== id && d._id !== id),
+        }));
+      } catch (err) {
+        console.error("Delete document failed:", err);
+      }
+    },
+
+    []
+  );
+
+  // ======================================
+  // FLASHCARDS
+  // ======================================
+
+  const addFlashcards = useCallback(
+    (cards) => {
       setState((s) => ({
         ...s,
 
-        documents: s.documents.filter((d) => d.id !== id && d._id !== id),
+        flashcards: [...s.flashcards, ...cards],
       }));
-    } catch (err) {
-      console.error("Delete document failed:", err);
-    }
-  }, []);
+    },
 
-  // ─────────────────────────────────────────────
-  // FLASHCARDS
-  // ─────────────────────────────────────────────
-  const addFlashcards = useCallback((cards) => {
-    setState((s) => ({
-      ...s,
+    []
+  );
 
-      flashcards: [...s.flashcards, ...cards],
-    }));
-  }, []);
-
-  // ─────────────────────────────────────────────
+  // ======================================
   // QUIZZES
-  // ─────────────────────────────────────────────
-  const addQuiz = useCallback((quiz) => {
-    setState((s) => ({
-      ...s,
-      quizzes: [quiz, ...s.quizzes],
-    }));
-  }, []);
+  // ======================================
 
-  // ─────────────────────────────────────────────
+  const addQuiz = useCallback(
+    (quiz) => {
+      setState((s) => ({
+        ...s,
+
+        quizzes: [quiz, ...s.quizzes],
+      }));
+    },
+
+    []
+  );
+
+  // ======================================
   // CHAT
-  // ─────────────────────────────────────────────
-  const addChatMessage = useCallback((docId, message) => {
-    setState((s) => ({
-      ...s,
+  // ======================================
 
-      chatHistories: {
-        ...s.chatHistories,
+  const addChatMessage = useCallback(
+    (docId, message) => {
+      setState((s) => ({
+        ...s,
 
-        [docId]: [...(s.chatHistories[docId] || []), message],
-      },
-    }));
-  }, []);
+        chatHistories: {
+          ...s.chatHistories,
 
-  const clearChat = useCallback((docId) => {
-    setState((s) => ({
-      ...s,
+          [docId]: [...(s.chatHistories[docId] || []), message],
+        },
+      }));
+    },
 
-      chatHistories: {
-        ...s.chatHistories,
-        [docId]: [],
-      },
-    }));
-  }, []);
+    []
+  );
+
+  const clearChat = useCallback(
+    (docId) => {
+      setState((s) => ({
+        ...s,
+
+        chatHistories: {
+          ...s.chatHistories,
+
+          [docId]: [],
+        },
+      }));
+    },
+
+    []
+  );
 
   const value = {
     ...state,
 
     login,
+
     register,
+
     logout,
 
     setCurrentView,
+
     setSelectedDocId,
 
     addDocument,
+
     refreshDocuments,
+
     deleteDocument,
 
     addFlashcards,
+
     addQuiz,
 
+    refreshQuizzes,
+
     addChatMessage,
+
     clearChat,
   };
 

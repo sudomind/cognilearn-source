@@ -1,8 +1,12 @@
 import { useState } from "react";
+
 import { useApp } from "../../context/AppContext";
+
 import { Button } from "../ui/Button";
+
 import { Spinner } from "../ui/Loaders";
-import { aiApi } from "../../services/api";
+
+import { aiApi, quizzesApi } from "../../services/api";
 
 export default function QuizTab({ docId }) {
   const { quizzes, addQuiz } = useApp();
@@ -23,6 +27,8 @@ export default function QuizTab({ docId }) {
 
   const [finished, setFinished] = useState(false);
 
+  const [submitting, setSubmitting] = useState(false);
+
   // ======================================
   // GENERATE QUIZ
   // ======================================
@@ -41,6 +47,16 @@ export default function QuizTab({ docId }) {
         docId,
 
         questions: generated.questions || [],
+
+        status: generated.status || "pending",
+
+        latestScore: generated.latestScore || null,
+
+        latestTotal: generated.latestTotal || null,
+
+        attemptCount: generated.attemptCount || 0,
+
+        bestScore: generated.bestScore || null,
 
         createdAt: new Date().toISOString(),
       };
@@ -81,7 +97,7 @@ export default function QuizTab({ docId }) {
   // NEXT QUESTION
   // ======================================
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selected === null) return;
 
     const newAnswers = [...answers, selected];
@@ -95,7 +111,17 @@ export default function QuizTab({ docId }) {
     } else {
       setAnswers(newAnswers);
 
-      setFinished(true);
+      setSubmitting(true);
+
+      try {
+        await quizzesApi.submitQuiz(activeQuiz.id, newAnswers);
+      } catch (err) {
+        console.error("Quiz submit failed:", err);
+      } finally {
+        setSubmitting(false);
+
+        setFinished(true);
+      }
     }
   };
 
@@ -107,8 +133,6 @@ export default function QuizTab({ docId }) {
     const q = activeQuiz.questions[questionIndex];
 
     const progress = ((questionIndex + 1) / activeQuiz.questions.length) * 100;
-
-    const correctAnswer = q.correctAnswer || q.correct || 0;
 
     return (
       <div className="p-6 space-y-6 h-full overflow-y-auto">
@@ -140,14 +164,12 @@ export default function QuizTab({ docId }) {
 
         {/* Question */}
         <div className="glass-card rounded-2xl p-6 space-y-6">
-          {/* Difficulty */}
           {q.difficulty && (
             <div className="inline-flex px-3 py-1 rounded-full text-xs bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
               {q.difficulty}
             </div>
           )}
 
-          {/* Question */}
           <h3 className="font-semibold text-lg leading-relaxed font-sora">
             {q.question}
           </h3>
@@ -185,10 +207,12 @@ export default function QuizTab({ docId }) {
         {/* Next */}
         <Button
           onClick={handleNext}
-          disabled={selected === null}
+          disabled={selected === null || submitting}
           className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-xl"
         >
-          {questionIndex < activeQuiz.questions.length - 1
+          {submitting
+            ? "Saving Results..."
+            : questionIndex < activeQuiz.questions.length - 1
             ? "Next Question →"
             : "Finish Quiz"}
         </Button>
@@ -225,7 +249,9 @@ export default function QuizTab({ docId }) {
             <div className="text-5xl font-bold font-sora">{percentage}%</div>
 
             <div className="text-slate-400 text-sm mt-2">
-              {score} correct out of {total}
+              {score}
+              {" correct out of "}
+              {total}
             </div>
           </div>
 
@@ -291,7 +317,6 @@ export default function QuizTab({ docId }) {
                     </div>
                   ))}
 
-                  {/* Explanation */}
                   {q.explanation && (
                     <div className="text-xs text-slate-400 mt-3 italic border-l border-white/10 pl-3">
                       💡 {q.explanation}
@@ -392,10 +417,19 @@ export default function QuizTab({ docId }) {
             >
               <div>
                 <div className="text-sm font-medium">
-                  {quiz.questions.length} Questions
+                  {quiz.questions.length}
+                  {" Questions"}
                 </div>
 
-                <div className="text-xs text-slate-500">Quiz Ready</div>
+                <div className="text-xs text-slate-500 mt-1">
+                  Status: {quiz.status || "pending"}
+                </div>
+
+                {quiz.latestScore !== null && (
+                  <div className="text-xs text-indigo-300 mt-1">
+                    Latest: {quiz.latestScore}/{quiz.latestTotal}
+                  </div>
+                )}
               </div>
 
               <Button
