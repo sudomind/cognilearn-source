@@ -1,72 +1,159 @@
-import { useState, useRef, useEffect } from 'react'
-import { useApp } from '../../context/AppContext'
-import { Button } from '../ui/Button'
-import { TypingDots } from '../ui/Loaders'
-import { sendChatMessage } from '../../services/anthropic'
-import { genId } from '../../utils/helpers'
+import { useState, useRef, useEffect } from 'react';
+import { useApp } from '../../context/AppContext';
+import { Button } from '../ui/Button';
+import { TypingDots } from '../ui/Loaders';
+import { aiApi } from '../../services/api';
+import { genId } from '../../utils/helpers';
 
 const SUGGESTIONS = [
   'Summarize the key concepts',
   'What are the main topics?',
   'Explain the most important idea',
   'Give me 3 key takeaways',
-]
+];
 
-export default function ChatTab({ docId, content, docName }) {
-  const { chatHistories, addChatMessage, clearChat } = useApp()
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
-  const history = chatHistories[docId] || []
+export default function ChatTab({ docId }) {
+  const { chatHistories, addChatMessage, clearChat } = useApp();
+
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const bottomRef = useRef(null);
+
+  const history = (chatHistories[docId] || []).slice(-6);
+
+  // ======================================
+  // AUTO SCROLL
+  // ======================================
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [history, loading])
+    bottomRef.current?.scrollIntoView({
+      behavior: 'smooth',
+    });
+  }, [history, loading]);
+
+  // ======================================
+  // LOAD CHAT HISTORY
+  // ======================================
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const res = await aiApi.getChatHistory(docId);
+
+        const messages = res.data.messages || [];
+
+        clearChat(docId);
+
+        messages.forEach((msg) => {
+          addChatMessage(docId, {
+            id: msg._id || genId('msg'),
+
+            role: msg.role,
+
+            content: msg.content,
+
+            timestamp: msg.createdAt || new Date().toISOString(),
+          });
+        });
+      } catch (err) {
+        console.error('Load chat history failed:', err);
+      }
+    };
+
+    if (docId) {
+      loadHistory();
+    }
+  }, [docId]);
+
+  // ======================================
+  // SEND MESSAGE
+  // ======================================
 
   const send = async (message) => {
-    const text = (message || input).trim()
-    if (!text || loading) return
-    setInput('')
+    const text = (message || input).trim();
 
+    if (!text || loading) return;
+
+    setInput('');
+
+    // USER MESSAGE
     addChatMessage(docId, {
       id: genId('msg'),
+
       role: 'user',
+
       content: text,
+
       timestamp: new Date().toISOString(),
-    })
-    setLoading(true)
+    });
+
+    setLoading(true);
 
     try {
-      const reply = await sendChatMessage(text, content, docName, history)
+      const res = await aiApi.chat(docId, text);
+
+      const reply =
+        res.data.reply ||
+        res.data.reply ||
+        res.data.response ||
+        'Sorry, I could not generate a response.';
+
+      // ASSISTANT MESSAGE
       addChatMessage(docId, {
         id: genId('msg'),
+
         role: 'assistant',
+
         content: reply,
+
         timestamp: new Date().toISOString(),
-      })
-    } catch {
+      });
+    } catch (err) {
+      console.error('Chat failed:', err);
+
       addChatMessage(docId, {
         id: genId('msg'),
+
         role: 'assistant',
+
         content: 'Sorry, I had trouble processing that. Please try again.',
+
         timestamp: new Date().toISOString(),
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  // ======================================
+  // CLEAR CHAT
+  // ======================================
+
+  const handleClearChat = async () => {
+    try {
+      await aiApi.clearChatHistory(docId);
+
+      clearChat(docId);
+    } catch (err) {
+      console.error('Clear chat failed:', err);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full">
-      {/* Sub-header */}
+      {/* HEADER */}
       <div
         className="flex items-center justify-between px-6 py-3 border-b"
-        style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+        style={{
+          borderColor: 'rgba(255,255,255,0.08)',
+        }}
       >
         <div className="text-sm text-slate-400">AI Chat with your document</div>
+
         {history.length > 0 && (
           <button
-            onClick={() => clearChat(docId)}
+            onClick={handleClearChat}
             className="text-xs text-slate-500 hover:text-rose-400 transition-colors"
           >
             Clear chat
@@ -74,17 +161,22 @@ export default function ChatTab({ docId, content, docName }) {
         )}
       </div>
 
-      {/* Messages */}
+      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {history.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
             <div className="text-5xl animate-float">💬</div>
+
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg font-sora">Ask anything about this document</h3>
+              <h3 className="font-semibold text-lg font-sora">
+                Ask anything about this document
+              </h3>
+
               <p className="text-slate-400 text-sm">
-                I've read the entire document and can answer your questions
+                I've read the document and can answer your questions
               </p>
             </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-md">
               {SUGGESTIONS.map((s) => (
                 <button
@@ -102,13 +194,16 @@ export default function ChatTab({ docId, content, docName }) {
             {history.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
               >
                 {msg.role === 'assistant' && (
                   <div className="w-7 h-7 rounded-full bg-indigo-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
                     🤖
                   </div>
                 )}
+
                 <div
                   className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.role === 'user'
@@ -126,16 +221,23 @@ export default function ChatTab({ docId, content, docName }) {
                 <div className="w-7 h-7 rounded-full bg-indigo-500/20 flex items-center justify-center text-sm mr-2 flex-shrink-0 mt-1">
                   🤖
                 </div>
+
                 <TypingDots />
               </div>
             )}
+
             <div ref={bottomRef} />
           </>
         )}
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+      {/* INPUT */}
+      <div
+        className="p-4 border-t"
+        style={{
+          borderColor: 'rgba(255,255,255,0.08)',
+        }}
+      >
         <div className="flex gap-2">
           <input
             value={input}
@@ -144,6 +246,7 @@ export default function ChatTab({ docId, content, docName }) {
             placeholder="Ask a question about this document…"
             className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
           />
+
           <Button
             onClick={() => send()}
             disabled={!input.trim() || loading}
@@ -154,5 +257,5 @@ export default function ChatTab({ docId, content, docName }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
