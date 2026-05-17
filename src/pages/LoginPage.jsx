@@ -1,59 +1,59 @@
-import { useState } from "react";
-import { useApp } from "../context/AppContext";
-import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
-import { Spinner } from "../components/ui/Loaders";
+import { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Spinner } from '../components/ui/Loaders';
 
 const FEATURES = [
-  { icon: "📄", label: "Smart Summaries", desc: "One-click AI summaries" },
-  { icon: "💬", label: "Doc Chat", desc: "Ask anything from PDFs" },
-  { icon: "🃏", label: "Flashcards", desc: "Auto-generated cards" },
-  { icon: "🧠", label: "AI Quizzes", desc: "Test your knowledge" },
+  { icon: '📄', label: 'Smart Summaries', desc: 'One-click AI summaries' },
+  { icon: '💬', label: 'Doc Chat', desc: 'Ask anything from PDFs' },
+  { icon: '🃏', label: 'Flashcards', desc: 'Auto-generated cards' },
+  { icon: '🧠', label: 'AI Quizzes', desc: 'Test your knowledge' },
 ];
 
 export default function LoginPage() {
   const { login, register } = useApp();
 
-  const [mode, setMode] = useState("login");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState('login');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    if (!email || !password || (mode === "register" && !name)) {
-      setError("Please fill in all fields");
+    if (!email || !password || (mode === 'register' && !name)) {
+      setError('Please fill in all fields');
       return;
     }
 
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       let result;
 
-      if (mode === "login") {
+      if (mode === 'login') {
         result = await login(email, password);
       } else {
         result = await register(name, email, password);
       }
 
       if (!result.success) {
-        setError(result.message || "Authentication failed");
+        setError(result.message || 'Authentication failed');
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const fillDemo = () => {
-    setEmail("demo@cognilearn.ai");
-    setPassword("demo123");
+    setEmail('demo@cognilearn.ai');
+    setPassword('demo123');
   };
 
   return (
@@ -108,8 +108,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="text-sm text-slate-600">
-          © 2025 CogniLearn — Built for ambitious learners
+        <div className="text-2xl text-slate-100">
+          <br />© 2026 Project Submission - Aman Sharma
         </div>
       </div>
 
@@ -129,40 +129,40 @@ export default function LoginPage() {
             {/* Heading */}
             <div className="space-y-1">
               <h2 className="text-2xl font-bold font-sora">
-                {mode === "login" ? "Welcome back" : "Create account"}
+                {mode === 'login' ? 'Welcome back' : 'Create account'}
               </h2>
 
               <p className="text-slate-400 text-sm">
-                {mode === "login"
-                  ? "Sign in to continue your learning journey"
-                  : "Start your AI-powered study experience"}
+                {mode === 'login'
+                  ? 'Sign in to continue your learning journey'
+                  : 'Start your AI-powered study experience'}
               </p>
             </div>
 
             {/* Tabs */}
             <div className="flex rounded-xl bg-white/5 p-1">
-              {["login", "register"].map((m) => (
+              {['login', 'register'].map((m) => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => {
                     setMode(m);
-                    setError("");
+                    setError('');
                   }}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     mode === m
-                      ? "bg-indigo-500 text-white shadow-lg"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? 'bg-indigo-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  {m === "login" ? "Sign In" : "Sign Up"}
+                  {m === 'login' ? 'Sign In' : 'Sign Up'}
                 </button>
               ))}
             </div>
 
             {/* Inputs */}
             <div className="space-y-4">
-              {mode === "register" && (
+              {mode === 'register' && (
                 <div className="space-y-1">
                   <label className="text-xs text-slate-400 font-medium">
                     Full Name
@@ -172,7 +172,7 @@ export default function LoginPage() {
                     placeholder="Alex Johnson"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                   />
                 </div>
               )}
@@ -187,7 +187,7 @@ export default function LoginPage() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                 />
               </div>
 
@@ -201,7 +201,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                 />
               </div>
             </div>
@@ -224,48 +224,33 @@ export default function LoginPage() {
                 <span className="flex items-center gap-2">
                   <Spinner />
 
-                  {mode === "login" ? "Signing in…" : "Creating account…"}
+                  {mode === 'login' ? 'Signing in…' : 'Creating account…'}
                 </span>
-              ) : mode === "login" ? (
-                "Sign In"
+              ) : mode === 'login' ? (
+                'Sign In'
               ) : (
-                "Create Account"
+                'Create Account'
               )}
             </Button>
 
             {/* Footer */}
             <p className="text-center text-xs text-slate-500">
-              {mode === "login"
+              {mode === 'login'
                 ? "Don't have an account? "
-                : "Already have an account? "}
+                : 'Already have an account? '}
 
               <button
                 type="button"
                 onClick={() => {
-                  setMode(mode === "login" ? "register" : "login");
+                  setMode(mode === 'login' ? 'register' : 'login');
 
-                  setError("");
+                  setError('');
                 }}
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
               >
-                {mode === "login" ? "Sign up free" : "Sign in"}
+                {mode === 'login' ? 'Sign up free' : 'Sign in'}
               </button>
             </p>
-
-            {/* Demo */}
-            <div className="border border-dashed border-white/10 rounded-xl p-4 text-center space-y-1">
-              <div className="text-xs text-slate-500">
-                Demo mode — try without a real account
-              </div>
-
-              <button
-                type="button"
-                onClick={fillDemo}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-              >
-                Fill demo credentials →
-              </button>
-            </div>
           </div>
         </div>
       </div>
