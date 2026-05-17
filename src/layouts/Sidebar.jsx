@@ -1,4 +1,4 @@
-import { useApp } from '../context/AppContext'
+import { useApp } from '../context/AppContext';
 
 const NAV = [
   { id: 'dashboard', icon: '⊞', label: 'Dashboard' },
@@ -6,13 +6,22 @@ const NAV = [
   { id: 'flashcards', icon: '🃏', label: 'Flashcards' },
   { id: 'quizzes', icon: '🧠', label: 'Quizzes' },
   { id: 'progress', icon: '📈', label: 'Progress' },
-]
+];
 
 export default function Sidebar() {
-  const { currentView, setCurrentView, user, logout, flashcards, quizzes, documents } = useApp()
+  const {
+    currentView,
+    setCurrentView,
+    user,
+    logout,
+    flashcards,
+    quizzes,
+    documents,
+  } = useApp();
 
   const isActive = (id) =>
-    currentView === id || (currentView === 'document-detail' && id === 'documents')
+    currentView === id ||
+    (currentView === 'document-detail' && id === 'documents');
 
   return (
     <aside
@@ -24,7 +33,10 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-      <div className="p-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+      <div
+        className="p-6 border-b"
+        style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+      >
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
             <span className="text-white font-bold text-base font-sora">C</span>
@@ -73,28 +85,13 @@ export default function Sidebar() {
             )}
           </button>
         ))}
-
-        {/* Account section */}
-        <div className="pt-4">
-          <div className="text-xs font-medium text-slate-600 uppercase tracking-widest mb-3 px-3">
-            Account
-          </div>
-          <button
-            onClick={() => setCurrentView('profile')}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-              currentView === 'profile'
-                ? 'sidebar-active text-indigo-300'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-            }`}
-          >
-            <span className="text-base leading-none">👤</span>
-            <span>Profile</span>
-          </button>
-        </div>
       </nav>
 
       {/* User footer */}
-      <div className="p-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+      <div
+        className="p-4 border-t"
+        style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+      >
         <div className="glass-card rounded-xl p-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-sm font-bold flex-shrink-0">
             {user?.name?.[0]?.toUpperCase()}
@@ -113,5 +110,5 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
-  )
+  );
 }
