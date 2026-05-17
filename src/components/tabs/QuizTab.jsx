@@ -118,15 +118,7 @@ export default function QuizTab({ docId }) {
       setSubmitting(true);
 
       try {
-        await quizzesApi.submitQuiz(
-          activeQuiz.id,
-
-          newAnswers
-        );
-
-        // ======================================
-        // IMPORTANT FIX
-        // ======================================
+        await quizzesApi.submitQuiz(activeQuiz.id, newAnswers);
 
         await refreshQuizzes();
       } catch (err) {
@@ -264,9 +256,7 @@ export default function QuizTab({ docId }) {
 
             <div className="text-slate-400 text-sm mt-2">
               {score}
-
               {" correct out of "}
-
               {total}
             </div>
           </div>
@@ -287,6 +277,61 @@ export default function QuizTab({ docId }) {
               ? "Good job!"
               : "Keep practicing!"}
           </div>
+        </div>
+
+        {/* Review Answers */}
+        <div className="space-y-4">
+          <h3 className="font-semibold font-sora">Review Answers</h3>
+
+          {activeQuiz.questions.map((q, i) => {
+            const userAnswer = answers[i];
+
+            const correct = q.correctAnswer || q.correct;
+
+            const isCorrect = userAnswer === correct;
+
+            return (
+              <div
+                key={i}
+                className={`glass-card rounded-xl p-5 border ${
+                  isCorrect
+                    ? "border-emerald-500/20 bg-emerald-500/5"
+                    : "border-rose-500/20 bg-rose-500/5"
+                }`}
+              >
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="text-xl">{isCorrect ? "✅" : "❌"}</div>
+
+                  <div className="font-medium text-sm leading-relaxed">
+                    {q.question}
+                  </div>
+                </div>
+
+                <div className="space-y-2 ml-9">
+                  {q.options.map((opt, idx) => (
+                    <div
+                      key={idx}
+                      className={`text-xs px-3 py-2 rounded-lg ${
+                        idx === correct
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : idx === userAnswer && !isCorrect
+                          ? "bg-rose-500/20 text-rose-300"
+                          : "text-slate-500"
+                      }`}
+                    >
+                      {String.fromCharCode(65 + idx)}. {opt}
+                    </div>
+                  ))}
+
+                  {q.explanation && (
+                    <div className="text-xs text-slate-400 mt-3 italic border-l border-white/10 pl-3">
+                      💡 {q.explanation}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Buttons */}
@@ -379,7 +424,6 @@ export default function QuizTab({ docId }) {
               <div>
                 <div className="text-sm font-medium">
                   {quiz.questions.length}
-
                   {" Questions"}
                 </div>
 
