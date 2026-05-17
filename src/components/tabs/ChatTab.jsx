@@ -94,7 +94,7 @@ export default function ChatTab({ docId }) {
       const res = await aiApi.chat(docId, text);
 
       const reply =
-        res.data.reply ||
+        res.data.message ||
         res.data.reply ||
         res.data.response ||
         'Sorry, I could not generate a response.';
