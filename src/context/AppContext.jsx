@@ -4,14 +4,14 @@ import {
   useState,
   useCallback,
   useEffect,
-} from "react";
+} from 'react';
 
 import {
   authApi,
   documentsApi,
   flashcardsApi,
   quizzesApi,
-} from "../services/api";
+} from '../services/api';
 
 const AppContext = createContext(null);
 
@@ -21,7 +21,7 @@ export function AppProvider({ children }) {
 
     isAuthenticated: false,
 
-    currentView: "login",
+    currentView: 'login',
 
     selectedDocId: null,
 
@@ -58,7 +58,7 @@ export function AppProvider({ children }) {
         quizzes: res.data.quizzes || [],
       }));
     } catch (err) {
-      console.error("Refresh quizzes failed:", err);
+      console.error('Refresh quizzes failed:', err);
     }
   }, []);
 
@@ -68,7 +68,7 @@ export function AppProvider({ children }) {
 
   const initializeApp = async () => {
     try {
-      const token = localStorage.getItem("cognilearn_token");
+      const token = localStorage.getItem('cognilearn_token');
 
       if (!token) {
         setState((s) => ({
@@ -93,7 +93,7 @@ export function AppProvider({ children }) {
 
         documents = docsRes.data.documents || [];
       } catch (err) {
-        console.error("Documents load failed:", err);
+        console.error('Documents load failed:', err);
       }
 
       // FLASHCARDS
@@ -104,7 +104,7 @@ export function AppProvider({ children }) {
 
         flashcards = flashRes.data.flashcards || [];
       } catch (err) {
-        console.error("Flashcards load failed:", err);
+        console.error('Flashcards load failed:', err);
       }
 
       // QUIZZES
@@ -115,7 +115,7 @@ export function AppProvider({ children }) {
 
         quizzes = quizRes.data.quizzes || [];
       } catch (err) {
-        console.error("Quizzes load failed:", err);
+        console.error('Quizzes load failed:', err);
       }
 
       setState((s) => ({
@@ -131,14 +131,14 @@ export function AppProvider({ children }) {
 
         quizzes,
 
-        currentView: "dashboard",
+        currentView: 'dashboard',
 
         loading: false,
       }));
     } catch (err) {
-      console.error("App initialization failed:", err);
+      console.error('App initialization failed:', err);
 
-      localStorage.removeItem("cognilearn_token");
+      localStorage.removeItem('cognilearn_token');
 
       setState((s) => ({
         ...s,
@@ -171,7 +171,7 @@ export function AppProvider({ children }) {
 
         const user = res.data.user;
 
-        localStorage.setItem("cognilearn_token", token);
+        localStorage.setItem('cognilearn_token', token);
 
         await refreshQuizzes();
 
@@ -182,19 +182,19 @@ export function AppProvider({ children }) {
 
           isAuthenticated: true,
 
-          currentView: "dashboard",
+          currentView: 'dashboard',
         }));
 
         return {
           success: true,
         };
       } catch (error) {
-        console.error("Login failed:", error);
+        console.error('Login failed:', error);
 
         return {
           success: false,
 
-          message: error.response?.data?.message || "Invalid email or password",
+          message: error.response?.data?.message || 'Invalid email or password',
         };
       }
     },
@@ -215,7 +215,7 @@ export function AppProvider({ children }) {
 
         const user = res.data.user;
 
-        localStorage.setItem("cognilearn_token", token);
+        localStorage.setItem('cognilearn_token', token);
 
         setState((s) => ({
           ...s,
@@ -230,19 +230,19 @@ export function AppProvider({ children }) {
 
           isAuthenticated: true,
 
-          currentView: "dashboard",
+          currentView: 'dashboard',
         }));
 
         return {
           success: true,
         };
       } catch (error) {
-        console.error("Register failed:", error);
+        console.error('Register failed:', error);
 
         return {
           success: false,
 
-          message: error.response?.data?.message || "Registration failed",
+          message: error.response?.data?.message || 'Registration failed',
         };
       }
     },
@@ -255,14 +255,14 @@ export function AppProvider({ children }) {
   // ======================================
 
   const logout = useCallback(() => {
-    localStorage.removeItem("cognilearn_token");
+    localStorage.removeItem('cognilearn_token');
 
     setState({
       user: null,
 
       isAuthenticated: false,
 
-      currentView: "login",
+      currentView: 'login',
 
       selectedDocId: null,
 
@@ -332,7 +332,7 @@ export function AppProvider({ children }) {
         documents: res.data.documents || [],
       }));
     } catch (err) {
-      console.error("Refresh documents failed:", err);
+      console.error('Refresh documents failed:', err);
     }
   }, []);
 
@@ -347,7 +347,7 @@ export function AppProvider({ children }) {
           documents: s.documents.filter((d) => d.id !== id && d._id !== id),
         }));
       } catch (err) {
-        console.error("Delete document failed:", err);
+        console.error('Delete document failed:', err);
       }
     },
 
@@ -369,6 +369,58 @@ export function AppProvider({ children }) {
 
     []
   );
+
+  const deleteFlashcard = useCallback(async (id) => {
+    try {
+      await flashcardsApi.delete(id);
+
+      setState((s) => ({
+        ...s,
+
+        flashcards: s.flashcards.filter(
+          (card) => card.id !== id && card._id !== id
+        ),
+      }));
+    } catch (err) {
+      console.error('Delete flashcard failed:', err);
+    }
+  }, []);
+
+  const toggleFavoriteFlashcard = useCallback((id) => {
+    setState((s) => ({
+      ...s,
+
+      flashcards: s.flashcards.map((card) => {
+        if (card.id === id || card._id === id) {
+          return {
+            ...card,
+
+            favorited: !card.favorited,
+          };
+        }
+
+        return card;
+      }),
+    }));
+  }, []);
+
+  const markFlashcardReviewed = useCallback((id) => {
+    setState((s) => ({
+      ...s,
+
+      flashcards: s.flashcards.map((card) => {
+        if (card.id === id || card._id === id) {
+          return {
+            ...card,
+
+            reviewed: true,
+          };
+        }
+
+        return card;
+      }),
+    }));
+  }, []);
 
   // ======================================
   // QUIZZES
@@ -401,7 +453,7 @@ export function AppProvider({ children }) {
           quizzes: s.quizzes.filter((q) => q.id !== id && q._id !== id),
         }));
       } catch (err) {
-        console.error("Delete quiz failed:", err);
+        console.error('Delete quiz failed:', err);
       }
     },
 
@@ -412,21 +464,17 @@ export function AppProvider({ children }) {
   // CHAT
   // ======================================
 
-  const addChatMessage = useCallback(
-    (docId, message) => {
-      setState((s) => ({
-        ...s,
+  const addChatMessage = useCallback((docId, message) => {
+    setState((s) => ({
+      ...s,
 
-        chatHistories: {
-          ...s.chatHistories,
+      chatHistories: {
+        ...s.chatHistories,
 
-          [docId]: [...(s.chatHistories[docId] || []), message],
-        },
-      }));
-    },
-
-    []
-  );
+        [docId]: [...(s.chatHistories[docId] || []), message],
+      },
+    }));
+  }, []);
 
   const clearChat = useCallback(
     (docId) => {
@@ -465,6 +513,12 @@ export function AppProvider({ children }) {
 
     addFlashcards,
 
+    deleteFlashcard,
+
+    toggleFavoriteFlashcard,
+
+    markFlashcardReviewed,
+
     addQuiz,
 
     deleteQuiz,
@@ -483,7 +537,7 @@ export function useApp() {
   const ctx = useContext(AppContext);
 
   if (!ctx) {
-    throw new Error("useApp must be used within AppProvider");
+    throw new Error('useApp must be used within AppProvider');
   }
 
   return ctx;
