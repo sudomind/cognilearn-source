@@ -1,9 +1,9 @@
-import { useMemo } from "react";
-
-import { useApp } from "../context/AppContext";
+import { useMemo } from 'react';
+import { useApp } from '../context/AppContext';
+import { Button } from '../components/ui/Button';
 
 export default function ProgressPage() {
-  const { documents, flashcards, quizzes } = useApp();
+  const { user, documents, flashcards, quizzes, logout } = useApp();
 
   // ======================================
   // QUIZ STATS
@@ -11,7 +11,9 @@ export default function ProgressPage() {
 
   const completed = useMemo(
     () =>
-      quizzes.filter((q) => q.status === "completed" && q.latestScore !== null),
+      quizzes.filter(
+        (q) => q.latestScore !== null && q.latestScore !== undefined
+      ),
     [quizzes]
   );
 
@@ -30,37 +32,37 @@ export default function ProgressPage() {
 
   const distribution = [
     {
-      range: "90–100%",
+      range: '90–100%',
       count: completed.filter((q) => q.latestScore / q.latestTotal >= 0.9)
         .length,
-      color: "bg-emerald-400",
+      color: 'bg-emerald-400',
     },
 
     {
-      range: "70–89%",
+      range: '70–89%',
       count: completed.filter((q) => {
         const p = q.latestScore / q.latestTotal;
 
         return p >= 0.7 && p < 0.9;
       }).length,
-      color: "bg-indigo-400",
+      color: 'bg-indigo-400',
     },
 
     {
-      range: "50–69%",
+      range: '50–69%',
       count: completed.filter((q) => {
         const p = q.latestScore / q.latestTotal;
 
         return p >= 0.5 && p < 0.7;
       }).length,
-      color: "bg-amber-400",
+      color: 'bg-amber-400',
     },
 
     {
-      range: "Below 50%",
+      range: 'Below 50%',
       count: completed.filter((q) => q.latestScore / q.latestTotal < 0.5)
         .length,
-      color: "bg-rose-400",
+      color: 'bg-rose-400',
     },
   ];
 
@@ -76,19 +78,44 @@ export default function ProgressPage() {
 
   return (
     <div className="p-8 space-y-8 max-w-5xl mx-auto animate-fade-in">
+      {/* ====================================== */}
+      {/* PROFILE HEADER */}
+      {/* ====================================== */}
+
+      <div className="glass-card rounded-2xl p-8">
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-4xl font-bold shadow-lg shadow-indigo-500/30 font-sora">
+            {user?.name?.[0]?.toUpperCase()}
+          </div>
+
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold font-sora">{user?.name}</h1>
+
+            <div className="text-slate-400 mt-2">{user?.email}</div>
+
+            <div className="text-sm text-slate-500 mt-1">
+              Member since{' '}
+              {user?.createdAt
+                ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                    month: 'long',
+                    year: 'numeric',
+                  })
+                : '2026'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* HEADER */}
       <div>
-        <h1 className="text-2xl font-bold font-sora">Learning Progress</h1>
+        <h2 className="text-2xl font-bold font-sora">Learning Progress</h2>
 
         <p className="text-slate-400 text-sm mt-1">
           Track your study journey and performance
         </p>
       </div>
 
-      {/* ====================================== */}
       {/* TOP ROW */}
-      {/* ====================================== */}
-
       <div className="grid grid-cols-2 gap-4">
         {/* DOCUMENTS */}
         <div className="glass-card rounded-2xl p-6">
@@ -115,8 +142,7 @@ export default function ProgressPage() {
             </div>
 
             <div className="text-xs text-slate-600">
-              {documents.length}
-              {" / 10 goal"}
+              {documents.length} / 10 goal
             </div>
           </div>
         </div>
@@ -146,17 +172,13 @@ export default function ProgressPage() {
             </div>
 
             <div className="text-xs text-slate-600">
-              {flashcards.length}
-              {" / 50 goal"}
+              {flashcards.length} / 50 goal
             </div>
           </div>
         </div>
       </div>
 
-      {/* ====================================== */}
       {/* FLASHCARD DASHBOARD */}
-      {/* ====================================== */}
-
       <div className="glass-card rounded-2xl p-6 space-y-4">
         <h2 className="font-semibold font-sora">Flashcard Dashboard</h2>
 
@@ -187,10 +209,7 @@ export default function ProgressPage() {
         </div>
       </div>
 
-      {/* ====================================== */}
       {/* QUIZ ROW */}
-      {/* ====================================== */}
-
       <div className="grid grid-cols-2 gap-4">
         {/* QUIZZES */}
         <div className="glass-card rounded-2xl p-6">
@@ -217,8 +236,7 @@ export default function ProgressPage() {
             </div>
 
             <div className="text-xs text-slate-600">
-              {completed.length}
-              {" / 20 goal"}
+              {completed.length} / 20 goal
             </div>
           </div>
         </div>
@@ -230,10 +248,10 @@ export default function ProgressPage() {
 
             <div
               className={`text-3xl font-bold font-sora ${
-                avgScore >= 70 ? "text-emerald-400" : "text-amber-400"
+                avgScore >= 70 ? 'text-emerald-400' : 'text-amber-400'
               }`}
             >
-              {avgScore ? `${avgScore}%` : "—"}
+              {avgScore}%
             </div>
           </div>
 
@@ -243,47 +261,48 @@ export default function ProgressPage() {
         </div>
       </div>
 
-      {/* ====================================== */}
       {/* DISTRIBUTION */}
-      {/* ====================================== */}
-
       <div className="glass-card rounded-2xl p-6 space-y-6">
         <h2 className="font-semibold font-sora">Quiz Score Distribution</h2>
 
-        {completed.length === 0 ? (
-          <div className="text-center py-8 space-y-2">
-            <div className="text-4xl">📊</div>
+        <div className="space-y-4">
+          {distribution.map((d) => (
+            <div key={d.range} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">{d.range}</span>
 
-            <div className="text-slate-400 text-sm">
-              Complete some quizzes to see your score distribution
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {distribution.map((d) => (
-              <div key={d.range} className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-400">{d.range}</span>
-
-                  <span className="font-medium">
-                    {d.count}
-                    {" quiz"}
-                    {d.count !== 1 ? "zes" : ""}
-                  </span>
-                </div>
-
-                <div className="h-3 rounded-full bg-white/8 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${d.color} transition-all duration-1000`}
-                    style={{
-                      width: `${(d.count / maxCount) * 100}%`,
-                    }}
-                  />
-                </div>
+                <span className="font-medium">
+                  {d.count} quiz
+                  {d.count !== 1 ? 'zes' : ''}
+                </span>
               </div>
-            ))}
-          </div>
-        )}
+
+              <div className="h-3 rounded-full bg-white/8 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${d.color} transition-all duration-1000`}
+                  style={{
+                    width: `${(d.count / maxCount) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SIGN OUT */}
+      <div className="glass-card rounded-2xl p-6 border border-rose-500/20">
+        <h3 className="font-semibold text-sm text-rose-400 mb-4 font-sora">
+          Account
+        </h3>
+
+        <Button
+          onClick={logout}
+          variant="ghost"
+          className="border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 w-full"
+        >
+          Sign Out
+        </Button>
       </div>
     </div>
   );
