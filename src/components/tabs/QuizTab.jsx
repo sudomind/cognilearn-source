@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-import { useApp } from "../../context/AppContext";
+import { useApp } from '../../context/AppContext';
 
-import { Button } from "../ui/Button";
+import { Button } from '../ui/Button';
 
-import { Spinner } from "../ui/Loaders";
+import { Spinner } from '../ui/Loaders';
 
-import { aiApi, quizzesApi } from "../../services/api";
+import { aiApi, quizzesApi } from '../../services/api';
 
 export default function QuizTab({ docId }) {
   const { quizzes, addQuiz, refreshQuizzes } = useApp();
@@ -46,11 +46,11 @@ export default function QuizTab({ docId }) {
 
         docId,
 
-        documentName: generated.documentName || "AI Quiz",
+        documentName: generated.documentName || 'AI Quiz',
 
         questions: generated.questions || [],
 
-        status: generated.status || "pending",
+        status: generated.status || 'pending',
 
         latestScore: generated.latestScore || null,
 
@@ -64,7 +64,7 @@ export default function QuizTab({ docId }) {
       };
 
       if (!quiz.questions.length) {
-        throw new Error("No questions generated");
+        throw new Error('No questions generated');
       }
 
       addQuiz(quiz);
@@ -73,7 +73,7 @@ export default function QuizTab({ docId }) {
     } catch (err) {
       console.error(err);
 
-      alert(err?.response?.data?.message || "Failed to generate quiz");
+      alert(err?.response?.data?.message || 'Failed to generate quiz');
     } finally {
       setGenerating(false);
     }
@@ -122,7 +122,7 @@ export default function QuizTab({ docId }) {
 
         await refreshQuizzes();
       } catch (err) {
-        console.error("Quiz submit failed:", err);
+        console.error('Quiz submit failed:', err);
       } finally {
         setSubmitting(false);
 
@@ -146,7 +146,7 @@ export default function QuizTab({ docId }) {
         <div className="flex items-center justify-between">
           <div className="text-sm text-slate-400">
             Question {questionIndex + 1}
-            {" of "}
+            {' of '}
             {activeQuiz.questions.length}
           </div>
 
@@ -188,16 +188,16 @@ export default function QuizTab({ docId }) {
                 onClick={() => setSelected(i)}
                 className={`w-full text-left p-4 rounded-xl border transition-all duration-150 text-sm ${
                   selected === i
-                    ? "border-indigo-500 bg-indigo-500/15 text-indigo-300"
-                    : "border-white/10 bg-white/5 text-slate-300 hover:border-indigo-500/50 hover:bg-white/8"
+                    ? 'border-indigo-500 bg-indigo-500/15 text-indigo-300'
+                    : 'border-white/10 bg-white/5 text-slate-300 hover:border-indigo-500/50 hover:bg-white/8'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5 ${
                       selected === i
-                        ? "border-indigo-500 bg-indigo-500 text-white"
-                        : "border-white/20 text-slate-500"
+                        ? 'border-indigo-500 bg-indigo-500 text-white'
+                        : 'border-white/20 text-slate-500'
                     }`}
                   >
                     {String.fromCharCode(65 + i)}
@@ -217,10 +217,10 @@ export default function QuizTab({ docId }) {
           className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-xl"
         >
           {submitting
-            ? "Saving Results..."
+            ? 'Saving Results...'
             : questionIndex < activeQuiz.questions.length - 1
-            ? "Next Question →"
-            : "Finish Quiz"}
+            ? 'Next Question →'
+            : 'Finish Quiz'}
         </Button>
       </div>
     );
@@ -248,7 +248,7 @@ export default function QuizTab({ docId }) {
         {/* Score */}
         <div className="glass-card rounded-2xl p-8 text-center space-y-4">
           <div className="text-6xl">
-            {percentage >= 80 ? "🏆" : percentage >= 60 ? "🔥" : "📚"}
+            {percentage >= 80 ? '🏆' : percentage >= 60 ? '🔥' : '📚'}
           </div>
 
           <div>
@@ -256,7 +256,7 @@ export default function QuizTab({ docId }) {
 
             <div className="text-slate-400 text-sm mt-2">
               {score}
-              {" correct out of "}
+              {' correct out of '}
               {total}
             </div>
           </div>
@@ -272,10 +272,10 @@ export default function QuizTab({ docId }) {
 
           <div className="text-sm text-slate-400">
             {percentage >= 80
-              ? "Excellent performance!"
+              ? 'Excellent performance!'
               : percentage >= 60
-              ? "Good job!"
-              : "Keep practicing!"}
+              ? 'Good job!'
+              : 'Keep practicing!'}
           </div>
         </div>
 
@@ -295,12 +295,12 @@ export default function QuizTab({ docId }) {
                 key={i}
                 className={`glass-card rounded-xl p-5 border ${
                   isCorrect
-                    ? "border-emerald-500/20 bg-emerald-500/5"
-                    : "border-rose-500/20 bg-rose-500/5"
+                    ? 'border-emerald-500/20 bg-emerald-500/5'
+                    : 'border-rose-500/20 bg-rose-500/5'
                 }`}
               >
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="text-xl">{isCorrect ? "✅" : "❌"}</div>
+                  <div className="text-xl">{isCorrect ? '✅' : '❌'}</div>
 
                   <div className="font-medium text-sm leading-relaxed">
                     {q.question}
@@ -313,10 +313,10 @@ export default function QuizTab({ docId }) {
                       key={idx}
                       className={`text-xs px-3 py-2 rounded-lg ${
                         idx === correct
-                          ? "bg-emerald-500/20 text-emerald-300"
+                          ? 'bg-emerald-500/20 text-emerald-300'
                           : idx === userAnswer && !isCorrect
-                          ? "bg-rose-500/20 text-rose-300"
-                          : "text-slate-500"
+                          ? 'bg-rose-500/20 text-rose-300'
+                          : 'text-slate-500'
                       }`}
                     >
                       {String.fromCharCode(65 + idx)}. {opt}
@@ -372,25 +372,6 @@ export default function QuizTab({ docId }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Count */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Questions:</span>
-
-            {[5, 8, 10].map((n) => (
-              <button
-                key={n}
-                onClick={() => setCount(n)}
-                className={`w-8 h-7 rounded-lg text-xs font-medium transition-all ${
-                  count === n
-                    ? "bg-indigo-500 text-white"
-                    : "bg-white/5 hover:bg-white/10"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-
           {/* Generate */}
           <Button
             onClick={handleGenerate}
@@ -403,7 +384,7 @@ export default function QuizTab({ docId }) {
                 Generating…
               </>
             ) : (
-              "🧠 Generate Quiz"
+              '🧠 Generate Quiz'
             )}
           </Button>
         </div>
@@ -424,11 +405,11 @@ export default function QuizTab({ docId }) {
               <div>
                 <div className="text-sm font-medium">
                   {quiz.questions.length}
-                  {" Questions"}
+                  {' Questions'}
                 </div>
 
                 <div className="text-xs text-slate-500 mt-1">
-                  Status: {quiz.status || "pending"}
+                  Status: {quiz.status || 'pending'}
                 </div>
 
                 {quiz.latestScore !== null && (
