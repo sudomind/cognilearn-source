@@ -9,7 +9,6 @@ import DocumentDetailPage from "../pages/DocumentDetailPage";
 import FlashcardsPage from "../pages/FlashcardsPage";
 import QuizzesPage from "../pages/QuizzesPage";
 import ProgressPage from "../pages/ProgressPage";
-import ProfilePage from "../pages/ProfilePage";
 
 function LoadingScreen() {
   return (
@@ -47,9 +46,6 @@ function PageRouter() {
 
     case "progress":
       return <ProgressPage />;
-
-    case "profile":
-      return <ProfilePage />;
 
     default:
       return <DashboardPage />;
