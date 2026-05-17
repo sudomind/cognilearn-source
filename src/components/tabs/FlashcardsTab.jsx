@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useApp } from "../../context/AppContext";
-import { Button } from "../ui/Button";
-import { Spinner, Skeleton } from "../ui/Loaders";
-import { aiApi } from "../../services/api";
+import { useEffect, useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import { Button } from '../ui/Button';
+import { Spinner, Skeleton } from '../ui/Loaders';
+import { aiApi } from '../../services/api';
 
 export default function FlashcardsTab({ docId }) {
   const { flashcards, addFlashcards } = useApp();
@@ -17,7 +17,7 @@ export default function FlashcardsTab({ docId }) {
 
   const [studyIndex, setStudyIndex] = useState(0);
 
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState('grid');
 
   // ======================================
   // RESTORE VIEW MODE
@@ -48,7 +48,7 @@ export default function FlashcardsTab({ docId }) {
       const generated = res.data?.flashcards || [];
 
       if (!generated.length) {
-        throw new Error("No flashcards generated");
+        throw new Error('No flashcards generated');
       }
 
       addFlashcards(
@@ -57,9 +57,9 @@ export default function FlashcardsTab({ docId }) {
 
           docId,
 
-          front: c.front || c.question || "Untitled Question",
+          front: c.front || c.question || 'Untitled Question',
 
-          back: c.back || c.answer || "No Answer",
+          back: c.back || c.answer || 'No Answer',
 
           favorited: false,
           reviewed: false,
@@ -71,7 +71,7 @@ export default function FlashcardsTab({ docId }) {
     } catch (err) {
       console.error(err);
 
-      alert(err?.response?.data?.message || "Failed to generate flashcards");
+      alert(err?.response?.data?.message || 'Failed to generate flashcards');
     } finally {
       setLoading(false);
     }
@@ -95,38 +95,19 @@ export default function FlashcardsTab({ docId }) {
           {/* View toggle */}
           {cards.length > 0 && (
             <div className="flex rounded-lg bg-white/5 p-0.5">
-              {["grid", "study"].map((v) => (
+              {['grid', 'study'].map((v) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
                   className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    view === v ? "bg-indigo-500 text-white" : "text-slate-400"
+                    view === v ? 'bg-indigo-500 text-white' : 'text-slate-400'
                   }`}
                 >
-                  {v === "grid" ? "⊞ Grid" : "📖 Study"}
+                  {v === 'grid' ? '⊞ Grid' : '📖 Study'}
                 </button>
               ))}
             </div>
           )}
-
-          {/* Count */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Cards:</span>
-
-            {[6, 8, 10, 12].map((n) => (
-              <button
-                key={n}
-                onClick={() => setCount(n)}
-                className={`w-7 h-7 rounded-lg text-xs font-medium transition-all ${
-                  count === n
-                    ? "bg-indigo-500 text-white"
-                    : "bg-white/5 hover:bg-white/10"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
 
           {/* Generate */}
           <Button
@@ -140,7 +121,7 @@ export default function FlashcardsTab({ docId }) {
                 Generating…
               </>
             ) : (
-              "✨ Generate"
+              '✨ Generate'
             )}
           </Button>
         </div>
@@ -166,7 +147,7 @@ export default function FlashcardsTab({ docId }) {
             Generate AI-powered flashcards from this document
           </p>
         </div>
-      ) : view === "grid" ? (
+      ) : view === 'grid' ? (
         /* GRID VIEW */
         <div className="grid sm:grid-cols-2 gap-4">
           {cards.map((card) => (
@@ -177,7 +158,7 @@ export default function FlashcardsTab({ docId }) {
             >
               <div
                 className={`flip-card-inner ${
-                  flipped === card.id ? "flipped" : ""
+                  flipped === card.id ? 'flipped' : ''
                 }`}
               >
                 {/* FRONT */}
@@ -222,7 +203,7 @@ export default function FlashcardsTab({ docId }) {
           >
             <div
               className={`flip-card-inner ${
-                flipped === currentCard?.id ? "flipped" : ""
+                flipped === currentCard?.id ? 'flipped' : ''
               }`}
             >
               {/* FRONT */}
@@ -271,7 +252,7 @@ export default function FlashcardsTab({ docId }) {
 
             <div className="text-sm text-slate-400">
               {studyIndex + 1}
-              {" / "}
+              {' / '}
               {cards.length}
             </div>
 
